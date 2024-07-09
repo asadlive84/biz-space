@@ -1,0 +1,191 @@
+syntax = "proto3";
+
+package shop;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "./pb";
+
+// Define the Shop message
+message Shop {
+  string id = 1;
+  string name = 2;
+  string address = 3;
+  string owner_id = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+// Define the Product message
+message Product {
+  string id = 1;
+  string shop_id = 2;
+  string name = 3;
+  string description = 4;
+  int32 stock = 5;
+  double price = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+// Request message for creating a shop
+message CreateShopRequest {
+  string name = 1;
+  string address = 2;
+  string owner_id = 3;
+}
+
+// Response message for CreateShop
+message CreateShopResponse {
+  Shop shop = 1;
+  int64 status = 2;
+  string error = 3;
+  string message = 4;
+}
+
+// Request message for updating a shop
+message UpdateShopRequest {
+  string id = 1;
+  string name = 2;
+  string address = 3;
+  string owner_id = 4;
+}
+
+// Response message for UpdateShop
+message UpdateShopResponse {
+  Shop shop = 1;
+  int64 status = 2;
+  string error = 3;
+  string message = 4;
+}
+
+// Request message for retrieving a shop by ID
+message GetShopRequest {
+  string id = 1;
+}
+
+// Response message for GetShop
+message GetShopResponse {
+  Shop shop = 1;
+  int64 status = 2;
+  string error = 3;
+  string message = 4;
+}
+
+// Request message for listing all shops
+message ListShopsRequest {
+  string owner_id = 1;
+}
+
+// Response message for ListShops
+message ListShopsResponse {
+  repeated Shop shops = 1;
+  int64 status = 2;
+  string error = 3;
+  string message = 4;
+}
+
+// Request message for deleting a shop
+message DeleteShopRequest {
+  string id = 1;
+}
+
+// Request message for creating a product
+message CreateProductRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  int32 stock = 4;
+  double price = 5;
+}
+
+// Response message for CreateProduct
+message CreateProductResponse {
+  Product product = 1;
+  int64 status = 2;
+  string error = 3;
+  string message = 4;
+}
+
+// Request message for updating a product
+message UpdateProductRequest {
+  string id = 1;
+  string shop_id = 2;
+  string name = 3;
+  string description = 4;
+  int32 stock = 5;
+  double price = 6;
+}
+
+// Response message for UpdateProduct
+message UpdateProductResponse {
+  Product product = 1;
+  int64 status = 2;
+  string error = 3;
+  string message = 4;
+}
+
+// Request message for retrieving a product by ID
+message GetProductRequest {
+  string id = 1;
+  string shop_id = 2;
+}
+
+// Response message for GetProduct
+message GetProductResponse {
+  Product product = 1;
+  int64 status = 2;
+  string error = 3;
+  string message = 4;
+}
+
+// Request message for listing all products in a shop
+message ListProductsRequest {
+  string shop_id = 1;
+}
+
+// Response message for ListProducts
+message ListProductsResponse {
+  repeated Product products = 1;
+  int64 status = 2;
+  string error = 3;
+  string message = 4;
+}
+
+// Request message for deleting a product
+message DeleteProductRequest {
+  string product_id = 1;
+  string shop_id = 2;
+}
+
+// Define the DeleteShopResponse message
+message DeleteShopResponse {
+  int64 status = 1;
+  string error = 2;
+  string message = 3;
+}
+
+service ShopService {
+  // Create a new shop
+  rpc CreateShop(CreateShopRequest) returns (CreateShopResponse);
+  // Update an existing shop
+  rpc UpdateShop(UpdateShopRequest) returns (UpdateShopResponse);
+  // Get a shop by ID
+  rpc GetShop(GetShopRequest) returns (GetShopResponse);
+  // List all shops
+  rpc ListShops(ListShopsRequest) returns (ListShopsResponse);
+  // Delete a shop by ID
+  rpc DeleteShop(DeleteShopRequest) returns (DeleteShopResponse);
+
+  // Create a new product
+  rpc CreateProduct(CreateProductRequest) returns (CreateProductResponse);
+  // Update an existing product
+  rpc UpdateProduct(UpdateProductRequest) returns (UpdateProductResponse);
+  // Get a product by ID
+  rpc GetProduct(GetProductRequest) returns (GetProductResponse);
+  // List all products in a shop
+  rpc ListProducts(ListProductsRequest) returns (ListProductsResponse);
+  // Delete a product by ID
+  rpc DeleteProduct(DeleteProductRequest) returns (google.protobuf.Empty);
+}

@@ -1,0 +1,148 @@
+syntax = "proto3";
+
+package auth;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+
+option go_package = "./pb";
+
+
+// Define the User message
+message User {
+  string user_id = 1;
+  string user_name = 2;
+  string full_name = 3;
+  string phone_number = 4;
+  string address = 5;
+  string password_hash = 6;
+  string email = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+
+// Request message for creating a user
+message CreateUserRequest {
+  string user_name = 1;
+  string full_name = 2;
+  string phone_number = 3;
+  string address = 4;
+  string password_hash = 5;
+  string email = 6;
+}
+
+
+// Response message for CreateUser
+message CreateUserResponse {
+  User user = 1;
+  int64 status = 2;
+  string error = 3;
+  string message = 4;
+}
+
+
+// Request message for retrieving a user by ID
+message GetUserRequest {
+  string user_id = 1;
+}
+
+// Response message for GetUser
+message GetUserResponse {
+  User user = 1;
+  int64 status = 2;
+  string error = 3;
+  string message = 4;
+}
+
+// Request message for updating a user
+message UpdateUserRequest {
+  string user_id = 1;
+  string user_name = 2;
+  string full_name = 3;
+  string phone_number = 4;
+  string address = 5;
+  string password_hash = 6;
+  string email = 7;
+}
+
+// Response message for UpdateUser
+message UpdateUserResponse {
+  User user = 1;
+  int64 status = 2;
+  string error = 3;
+  string message = 4;
+}
+
+// Request message for deleting a user
+message DeleteUserRequest {
+  string user_id = 1;
+}
+
+message CheckUserRequest{
+    string userID =1;
+}
+
+message CheckUserResponse{
+    int64 status = 1;
+    string error = 2;
+    string message = 3;
+    RegisterRequest user_info = 4;
+}
+
+// Register
+
+message RegisterRequest {
+  string name = 1;
+  string password = 2;
+  string phone = 3;
+  string email = 4;
+}
+
+message RegisterResponse {
+  int64 status = 1;
+  string error = 2;
+}
+
+// Login
+
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+  string phone = 3;
+
+}
+
+message LoginResponse {
+  int64 status = 1;
+  string error = 2;
+  string token = 3;
+}
+
+// Validate
+
+// message ValidateRequest { string token = 1; }
+
+// message ValidateResponse {
+//   int64 status = 1;
+//   string error = 2;
+//   int64 userId = 3;
+// }
+
+service AuthService {
+  rpc Register(RegisterRequest) returns (RegisterResponse) {}
+  rpc Login(LoginRequest) returns (LoginResponse) {}
+  //rpc Validate(ValidateRequest) returns (ValidateResponse) {}
+  rpc CheckUser(CheckUserRequest)returns(CheckUserResponse){}
+
+
+  // Create a new user
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  // Get a user by ID
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  // Update an existing user
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
+  // Delete a user by ID
+  rpc DeleteUser(DeleteUserRequest) returns (google.protobuf.Empty);
+}
