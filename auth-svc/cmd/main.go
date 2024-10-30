@@ -63,14 +63,11 @@ func main() {
 		Db: hdb,
 	}
 
-	s := services.Server{
-		// H: h,
-		Q: &queryDb,
-	}
+	s := services.NewServer(&queryDb, c.JWT_SECRET_KEY)
 
 	grpcServer := grpc.NewServer()
 
-	pb.RegisterAuthServiceServer(grpcServer, &s)
+	pb.RegisterAuthServiceServer(grpcServer, s)
 
 	fmt.Println("=============>Auth Server is running<===============")
 

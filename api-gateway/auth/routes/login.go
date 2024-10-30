@@ -35,3 +35,4 @@ func Login(ctx *gin.Context, d pb.AuthServiceClient) {
 	ctx.JSON(http.StatusCreated, &res)
 
 }
+

@@ -7,6 +7,14 @@ import (
 
 type Server struct {
 	// H db.DbHandler
-	Q q.Query
 	pb.UnimplementedAuthServiceServer
+	Q         q.Query
+	jwtSecret string
+}
+
+func NewServer(q q.Query, jwtSecret string) *Server {
+	return &Server{
+		Q:         q,
+		jwtSecret: jwtSecret,
+	}
 }

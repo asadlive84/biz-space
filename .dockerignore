@@ -1,0 +1,50 @@
+# Ignore the Dockerfile and docker-compose.yml in the deploy directory
+deploy/docker-compose.yml
+deploy/*Dockerfile
+
+# Ignore node_modules (if any)
+node_modules
+
+# Ignore all hidden files and directories
+.*
+!.dockerignore
+
+# Ignore Go's build and dependency directories/files
+bin/
+pkg/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+
+# Ignore vendor directory if not using vendoring for dependencies
+vendor/
+
+# Ignore temporary files and directories
+tmp/
+temp/
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore editor-specific files
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Ignore logs and other temporary files
+*.log
+*.out
+*.pid
+
+# Ignore the test coverage output
+*.coverprofile
+
+# Ignore the compiled Go binaries
+auth-svc
+shop-svc
+api-gateway

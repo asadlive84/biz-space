@@ -15,15 +15,16 @@ type QueryInit struct {
 var NotFound = errors.New("not found")
 
 type User struct {
-	UserID       string       `db:"user_id"`
-	UserName     string       `db:"user_name"`
-	FullName     string       `db:"full_name"`
-	PhoneNumber  string       `db:"phone_number"`
-	Address      string       `db:"address"`
-	PasswordHash string       `db:"password_hash"`
-	Email        string       `db:"email"`
-	CreatedAt    time.Time    `db:"created_at"`
-	UpdatedAt    sql.NullTime `db:"updated_at"`
+	UserID       string         `db:"user_id"`
+	UserName     string         `db:"user_name"`
+	FullName     string         `db:"full_name"`
+	PhoneNumber  string         `db:"phone_number"`
+	Address      string         `db:"address"`
+	PasswordHash string         `db:"password_hash"`
+	Email        string         `db:"email"`
+	CreatedAt    time.Time      `db:"created_at"`
+	UpdatedAt    sql.NullTime   `db:"updated_at"`
+	RefreshToken sql.NullString `db:"refresh_token"`
 }
 
 type Query interface {
@@ -31,4 +32,6 @@ type Query interface {
 	GetUserByEmail(email string) (*User, error)
 	GetUserByPhone(phone string) (*User, error)
 	GetUserByID(userID string) (User, error)
+
+	UpdateUserRefreshToken(user *User) error
 }

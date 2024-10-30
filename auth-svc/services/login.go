@@ -2,69 +2,102 @@ package services
 
 import (
 	"context"
-	"os"
+	"crypto/rand"
+	"database/sql"
+	"encoding/base64"
+	"errors"
+	"net/http"
 	"time"
 
-	// "log"
-	"net/http"
-
-	q "github.com/asadlive84/bizspace/auth-svc/internal/query"
 	pb "github.com/asadlive84/bizspace/proto/auth/pb"
+	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 
-	log "github.com/sirupsen/logrus"
+	q "github.com/asadlive84/bizspace/auth-svc/internal/query"
 )
 
+// Generate a random refresh token
+func generateRefreshToken() (string, error) {
+	b := make([]byte, 32)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return base64.URLEncoding.EncodeToString(b), nil
+}
+
+// Generate a JWT token
+func (s *Server) generateToken(user *q.User) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id": user.UserID,
+		"exp":     time.Now().Add(time.Hour * 3).Unix(), // Token expiry time
+	})
+
+	return token.SignedString([]byte(s.jwtSecret))
+}
+
 func (s *Server) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
+	var user *q.User
+	var err error
 
-	var logger = log.New()
-
-	logger.SetFormatter(&log.TextFormatter{
-		FullTimestamp:   true,
-		TimestampFormat: time.RFC3339,
-	},
-	)
-
-	// Set the output to standard output (console)
-	logger.SetOutput(os.Stdout)
-
-	logger.WithFields(log.Fields{"email": req.Email}).Info("Service: Login method with email")
-	logger.WithFields(log.Fields{"phone": req.Phone}).Info("Service: Login method with phone")
-
-	user, err := s.Q.GetUserByEmail(req.Email)
-	if err != nil && err != q.NotFound {
-		logger.WithFields(log.Fields{"email": req.Email}).Errorf("an error in get user query %+v", err)
+	if req.Email != "" {
+		user, err = s.Q.GetUserByEmail(req.Email)
+	} else if req.Phone != "" {
+		user, err = s.Q.GetUserByPhone(req.Phone)
+	} else {
 		return &pb.LoginResponse{
 			Status: http.StatusBadRequest,
+			Error:  "Email or phone is required",
 		}, nil
 	}
 
-	if user == nil {
-		user, err = s.Q.GetUserByPhone(req.Phone)
-		if err != nil && err != q.NotFound {
-			logger.WithFields(log.Fields{"phone": req.Phone}).Errorf("an error in get user query %+v", err)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
 			return &pb.LoginResponse{
-				Status: http.StatusBadRequest,
+				Status: http.StatusUnauthorized,
+				Error:  "Invalid credentials",
 			}, nil
 		}
-	}
-
-	if user == nil {
-		logger.Errorln("user email or phone is not found")
 		return &pb.LoginResponse{
-			Status: http.StatusBadRequest,
+			Status: http.StatusInternalServerError,
+			Error:  "Database error",
 		}, nil
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password))
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
+		return &pb.LoginResponse{
+			Status: http.StatusUnauthorized,
+			Error:  "Invalid credentials",
+		}, nil
+	}
+
+	accessToken, err := s.generateToken(user)
 	if err != nil {
-		logger.WithFields(log.Fields{"email": req.Email}).Errorf("has mismatched %+v", err)
 		return &pb.LoginResponse{
-			Status: http.StatusBadRequest,
+			Status: http.StatusInternalServerError,
+			Error:  "Failed to generate token",
 		}, nil
 	}
-	logger.WithFields(log.Fields{"email": req.Email}).Info("login successfully")
+
+	refreshToken, err := generateRefreshToken()
+	if err != nil {
+		return &pb.LoginResponse{
+			Status: http.StatusInternalServerError,
+			Error:  "Failed to generate refresh token",
+		}, nil
+	}
+
+	user.RefreshToken.String = refreshToken
+	err = s.Q.UpdateUserRefreshToken(user)
+	if err != nil {
+		return &pb.LoginResponse{
+			Status: http.StatusInternalServerError,
+			Error:  "Failed to store refresh token",
+		}, nil
+	}
+
 	return &pb.LoginResponse{
-		Status: http.StatusCreated,
+		Status:       http.StatusOK,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
 	}, nil
 }

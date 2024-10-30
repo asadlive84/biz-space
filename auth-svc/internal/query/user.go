@@ -77,3 +77,9 @@ func (q *QueryInit) GetUserByID(userID string) (User, error) {
 	}
 	return user, nil
 }
+
+
+func (q *QueryInit) UpdateUserRefreshToken(user *User) error {
+    _, err := q.Db.Exec("UPDATE users SET refresh_token = $1, updated_at = $2 WHERE user_id = $3", user.RefreshToken, time.Now(), user.UserID)
+    return err
+}
